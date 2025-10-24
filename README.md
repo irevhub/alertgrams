@@ -1,6 +1,6 @@
-# AlertGrams 📨
+# AlertGrams 📨 v1.1.1
 
-**Portable Telegram Alert Service with System Monitoring for Linux/UNIX Systems**
+**Portable Telegram Alert Service with Real-time Syslog Monitoring for Linux/UNIX Systems**
 
 AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to Telegram without requiring any external dependencies beyond what's already available on most Linux/UNIX systems.
 
@@ -28,13 +28,23 @@ AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to T
 - **Network Monitoring**: Internet and Telegram API connectivity validation
 - **Security Monitoring**: Failed login attempts and system changes detection
 
+### Real-time Syslog Monitoring (v1.1.1+)
+- **Immediate Alerts**: Real-time `/var/log/syslog` monitoring with instant notifications
+- **Pattern Detection**: Advanced pattern matching for critical, security, and error events
+- **Position Tracking**: Efficient log file monitoring with rotation support
+- **Configurable Patterns**: Customizable alert patterns for different system events
+- **Multi-mode Integration**: Available in Service, Cron, and Manual monitoring modes
+- **Critical Events**: Kernel panics, memory issues, system crashes immediate alerts
+- **Security Events**: Authentication failures, brute force detection, unauthorized access
+- **Error Events**: Service failures, timeouts, connection issues monitoring
+
 ## 🚀 Quick Start
 
 ### 1. Download and Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/irev/alertgrams.git
+git clone https://github.com/yourusername/alertgrams.git
 cd alertgrams
 
 # Run the installation script
@@ -105,6 +115,8 @@ chmod +x install.sh
 df -h / | awk 'NR==2 {if($5+0 > 80) system("./alert.sh WARNING \"Disk usage: " $5 " on " $1 "\"")}'
 ```
 
+> 🆕 **New in v1.1.1**: Real-time syslog monitoring with immediate alerts for critical system events, security incidents, and service failures. See [Syslog Monitoring](#-syslog-monitoring-v111) section below.
+
 ### Help and Options
 
 ```bash
@@ -132,6 +144,7 @@ sudo systemctl status alertgrams-monitor
 
 **Features:**
 - Real-time system resource monitoring
+- Real-time syslog monitoring with immediate alerts
 - Configurable alert thresholds
 - Service status monitoring
 - Network connectivity checks
@@ -143,13 +156,15 @@ Periodic monitoring checks via scheduled cron jobs.
 
 ```bash
 # Cron jobs are automatically created:
-*/5 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh critical
-*/15 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh service
-0 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh health
-0 9 * * * root cd /usr/local/bin && ./alertgrams-cron.sh daily
+*/2 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh syslog    # Every 2 minutes
+*/5 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh critical  # Every 5 minutes
+*/15 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh service  # Every 15 minutes
+0 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh health      # Every hour
+0 9 * * * root cd /usr/local/bin && ./alertgrams-cron.sh daily       # 9 AM daily
 ```
 
 **Features:**
+- Syslog monitoring every 2 minutes (immediate alerts)
 - Critical checks every 5 minutes
 - Service checks every 15 minutes
 - Health summaries every hour
@@ -163,16 +178,23 @@ On-demand monitoring tools with interactive menu.
 alertgrams-manual.sh          # Interactive menu
 alertgrams-manual.sh status   # Quick status check
 alertgrams-manual.sh report   # Full system report
+alertgrams-manual.sh syslog   # Syslog analysis
 alertgrams-manual.sh test     # Test alert functionality
 
-# Or use the convenient alias
-alertgrams-check
+# Dedicated syslog monitoring
+alertgrams-syslog monitor     # Real-time monitoring
+alertgrams-syslog analyze 50  # Analyze recent entries
+
+# Or use the convenient aliases
+alertgrams-check              # Manual monitoring menu
+alertgrams-syslog             # Syslog monitoring
 ```
 
 **Features:**
 - Interactive monitoring menu
 - Quick system status checks
 - Comprehensive system reports
+- Real-time syslog analysis and monitoring
 - Alert testing tools
 - Custom alert sending
 
@@ -181,12 +203,19 @@ alertgrams-check
 Add these variables to your `.env` file for enhanced monitoring:
 
 ```bash
-# Monitoring Settings (Optional)
+# System Monitoring Settings (Optional)
 MONITOR_SERVICES="nginx apache2 mysql postgresql ssh"  # Services to monitor
 CPU_THRESHOLD=90                                       # CPU alert threshold (%)
 MEMORY_THRESHOLD=90                                    # Memory alert threshold (%)
 DISK_THRESHOLD=90                                     # Disk alert threshold (%)
 MONITOR_INTERVAL=300                                  # Service monitoring interval (seconds)
+
+# Syslog Monitoring Settings (v1.1.1+)
+SYSLOG_FILE="/var/log/syslog"                         # Syslog file location
+SYSLOG_CHECK_INTERVAL=30                              # Check interval (seconds)
+SYSLOG_CRITICAL_PATTERNS="kernel panic|out of memory|segmentation fault|critical error|system crash|hardware error"
+SYSLOG_ERROR_PATTERNS="error|failed|failure|denied|rejected|timeout|unreachable"
+SYSLOG_SECURITY_PATTERNS="authentication failure|invalid user|failed password|brute force|intrusion|unauthorized"
 ```
 
 ### Monitoring Examples
@@ -203,6 +232,73 @@ MONITOR_INTERVAL=300                                  # Service monitoring inter
 
 # Monitor custom services
 MONITOR_SERVICES="docker redis mongodb" ./alertgrams-monitor.sh --test
+
+# Syslog monitoring examples (v1.1.1+)
+./alertgrams-syslog.sh monitor          # Real-time syslog monitoring
+./alertgrams-syslog.sh analyze 50       # Analyze last 50 syslog entries
+./alertgrams-manual.sh syslog 100       # Manual syslog analysis via menu
+alertgrams-syslog test                   # Test syslog pattern matching
+```
+
+## 🔍 Syslog Monitoring (v1.1.1+)
+
+Real-time monitoring of `/var/log/syslog` for immediate admin notifications on critical system events.
+
+### Quick Start
+
+```bash
+# Real-time monitoring (continuous)
+alertgrams-syslog monitor
+
+# Analyze recent entries
+alertgrams-syslog analyze 50
+
+# Test pattern matching
+alertgrams-syslog test
+
+# Show current configuration
+alertgrams-syslog config
+```
+
+### Alert Types
+
+#### 🚨 Critical Alerts (Immediate)
+- Kernel panics and system crashes
+- Out of memory conditions
+- Segmentation faults
+- Hardware errors
+
+#### 🔒 Security Alerts (Immediate)  
+- Authentication failures
+- Invalid user login attempts
+- Brute force detection
+- Unauthorized access attempts
+
+#### ❌ Error Alerts
+- Service start/stop failures
+- Network timeouts and connection issues
+- Permission denied errors
+- System resource unavailability
+
+### Example Alerts
+
+```
+🔍 SYSLOG CRITICAL: Oct 25 10:30:15 - kernel: Out of memory: Kill process 1234
+🔒 SYSLOG SECURITY: Oct 25 10:32:10 - sshd[5678]: Failed password for invalid user admin
+❌ SYSLOG ERROR: Oct 25 10:34:15 - systemd: Service nginx.service failed to start
+```
+
+### Advanced Usage
+
+```bash
+# Custom syslog file
+SYSLOG_FILE=/var/log/messages alertgrams-syslog monitor
+
+# Custom check interval (15 seconds)
+SYSLOG_CHECK_INTERVAL=15 alertgrams-syslog monitor
+
+# Background monitoring with logging
+nohup alertgrams-syslog monitor > /var/log/alertgrams-syslog.log 2>&1 &
 ```
 
 ## ⚙️ Configuration
@@ -445,6 +541,29 @@ grep -i error alerts.log
 grep -o '\[.*\]' alerts.log | sort | uniq -c
 ```
 
+## 📚 Documentation
+
+### Comprehensive Guides
+
+- **[INSTALL.md](INSTALL.md)** - Detailed installation instructions
+- **[SYSLOG-MONITORING.md](SYSLOG-MONITORING.md)** - Complete syslog monitoring setup guide
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and feature updates
+- **[SECURITY.md](SECURITY.md)** - Security best practices and considerations
+
+### Configuration Examples
+
+- **[.env.example](.env.example)** - Sample configuration file
+- **Service Mode**: Continuous monitoring with systemd integration
+- **Cron Mode**: Scheduled monitoring with automatic alerts
+- **Manual Mode**: On-demand monitoring tools and analysis
+
+### API Reference
+
+- **Alert Levels**: `INFO`, `WARNING`, `ERROR`, `CRITICAL`
+- **Monitoring Modes**: Service, Cron, Manual deployment options
+- **Syslog Patterns**: Configurable pattern matching for different event types
+- **Environment Variables**: Complete configuration reference
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
@@ -453,7 +572,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ```bash
 # Clone the repository
-git clone https://github.com/irev/alertgrams.git
+git clone https://github.com/yourusername/alertgrams.git
 cd alertgrams
 
 # Create a test environment
@@ -491,6 +610,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-
 **Made with ❤️ for the sysadmin community**
-
