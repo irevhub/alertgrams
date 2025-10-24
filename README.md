@@ -44,7 +44,7 @@ AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to T
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/alertgrams.git
+git clone https://github.com/irev/alertgrams.git
 cd alertgrams
 
 # Run the installation script
@@ -572,7 +572,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/alertgrams.git
+git clone https://github.com/irev/alertgrams.git
 cd alertgrams
 
 # Create a test environment
@@ -609,5 +609,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/irev/alertgrams/discussions)
 
 ---
+
 
 **Made with ❤️ for the sysadmin community**
