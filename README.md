@@ -32,6 +32,8 @@ chmod +x install.sh
 ./install.sh
 ```
 
+> 📖 **For detailed installation instructions**, see [INSTALL.md](INSTALL.md)
+
 ### 2. Configure Telegram Bot
 
 1. **Create a Bot**:
@@ -271,6 +273,8 @@ chmod 600 .env        # Secure configuration file
 
 ## 🛠️ Troubleshooting
 
+> 📖 **For comprehensive installation troubleshooting**, see [INSTALL.md](INSTALL.md#-troubleshooting)
+
 ### Common Issues
 
 #### 1. "Neither curl nor wget is available"
@@ -377,9 +381,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
+- **Installation Guide**: [INSTALL.md](INSTALL.md) - Detailed installation instructions
+- **Security Policy**: [SECURITY.md](SECURITY.md) - Security guidelines and best practices
 - **Issues**: [GitHub Issues](https://github.com/irev/alertgrams/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/irev/alertgrams/discussions)
-- **Security**: [Security Policy](SECURITY.md)
 
 ---
 
