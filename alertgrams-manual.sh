@@ -2,7 +2,7 @@
 # AlertGrams Manual Monitoring Tools
 # ==================================
 # Description: On-demand monitoring tools for manual execution
-# Version: 1.1.0
+# Version: 1.1.1
 
 set -eu
 
@@ -153,10 +153,11 @@ interactive_menu() {
         printf "=================================\n"
         printf "1) Quick Status Check\n"
         printf "2) Full System Report\n"
-        printf "3) Test Alert\n"
-        printf "4) Send Custom Alert\n"
-        printf "5) Exit\n"
-        printf "\nChoice (1-5): "
+        printf "3) Syslog Analysis\n"
+        printf "4) Test Alert\n"
+        printf "5) Send Custom Alert\n"
+        printf "6) Exit\n"
+        printf "\nChoice (1-6): "
         
         read -r choice
         
@@ -168,9 +169,23 @@ interactive_menu() {
                 full_report
                 ;;
             3)
-                test_alert
+                # Syslog analysis
+                syslog_script="./alertgrams-syslog.sh"
+                if [ ! -f "$syslog_script" ]; then
+                    syslog_script="/usr/local/bin/alertgrams-syslog.sh"
+                fi
+                
+                if [ -f "$syslog_script" ]; then
+                    printf "Analyzing recent syslog entries...\n"
+                    "$syslog_script" analyze 50
+                else
+                    printf "Syslog monitoring script not found.\n"
+                fi
                 ;;
             4)
+                test_alert
+                ;;
+            5)
                 printf "Alert Level (INFO/WARNING/CRITICAL): "
                 read -r level
                 printf "Message: "
@@ -187,12 +202,12 @@ interactive_menu() {
                     printf "Alert failed!\n"
                 fi
                 ;;
-            5)
+            6)
                 printf "Goodbye!\n"
                 exit 0
                 ;;
             *)
-                printf "Invalid choice. Please select 1-5.\n"
+                printf "Invalid choice. Please select 1-6.\n"
                 ;;
         esac
         
@@ -209,6 +224,21 @@ case "${1:-menu}" in
     "report"|"full")
         full_report
         ;;
+    "syslog"|"logs")
+        # Run syslog analysis
+        syslog_script="./alertgrams-syslog.sh"
+        if [ ! -f "$syslog_script" ]; then
+            syslog_script="/usr/local/bin/alertgrams-syslog.sh"
+        fi
+        
+        if [ -f "$syslog_script" ]; then
+            lines="${2:-50}"
+            "$syslog_script" analyze "$lines"
+        else
+            printf "Error: Syslog monitoring script not found\n" >&2
+            exit 1
+        fi
+        ;;
     "test")
         test_alert
         ;;
@@ -222,6 +252,7 @@ case "${1:-menu}" in
         printf "Commands:\n"
         printf "  status    - Quick system status check\n"
         printf "  report    - Comprehensive system report\n"
+        printf "  syslog N  - Analyze last N syslog entries (default: 50)\n"
         printf "  test      - Test alert functionality\n"
         printf "  menu      - Interactive menu (default)\n"
         printf "\nWith no arguments, starts interactive menu.\n"

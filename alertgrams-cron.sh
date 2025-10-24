@@ -2,7 +2,7 @@
 # AlertGrams Cron Monitoring Scripts
 # ==================================
 # Description: Periodic monitoring scripts for cron-based monitoring
-# Version: 1.1.0
+# Version: 1.1.1
 
 # Critical system checks (every 5 minutes)
 critical_check() {
@@ -71,6 +71,20 @@ Status: Operational
 Monitoring: Cron-based periodic checks active"
 }
 
+# Syslog monitoring (every 2 minutes)
+syslog_check() {
+    syslog_script="$(dirname "$0")/alertgrams-syslog.sh"
+    
+    if [ -f "$syslog_script" ]; then
+        # Quick analysis of recent entries
+        "$syslog_script" analyze 20 | grep -E "CRITICAL|SECURITY|ERROR" | head -5 | while IFS= read -r line; do
+            level=$(echo "$line" | grep -o '\[.*\]' | tr -d '[]')
+            message=$(echo "$line" | sed 's/^.*\] //')
+            ./alert.sh "$level" "Syslog Alert: $message"
+        done
+    fi
+}
+
 # Execute based on script name or parameter
 case "${1:-$(basename "$0")}" in
     "critical"|"critical_check")
@@ -85,12 +99,16 @@ case "${1:-$(basename "$0")}" in
     "daily"|"daily_summary")
         daily_summary
         ;;
+    "syslog"|"syslog_check")
+        syslog_check
+        ;;
     *)
-        printf "Usage: %s {critical|service|health|daily}\n" "$0"
+        printf "Usage: %s {critical|service|health|daily|syslog}\n" "$0"
         printf "  critical - Critical system resource checks\n"
         printf "  service  - Service status monitoring\n"
         printf "  health   - System health summary\n"
         printf "  daily    - Daily status report\n"
+        printf "  syslog   - Syslog monitoring check\n"
         exit 1
         ;;
 esac

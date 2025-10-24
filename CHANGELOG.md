@@ -7,7 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.0] - 2025-10-19
+## [1.1.1] - 2025-10-25
+
+### Added
+- **Syslog Real-time Monitoring**: Comprehensive /var/log/syslog monitoring system
+  - **alertgrams-syslog.sh**: Dedicated syslog monitoring daemon with:
+    - Real-time log file monitoring with position tracking
+    - Configurable pattern matching for different alert levels
+    - Critical patterns: kernel panic, out of memory, system crashes
+    - Security patterns: authentication failures, brute force attempts
+    - Error patterns: service failures, timeouts, access denied
+    - Immediate alert sending for critical system events
+    - Log rotation handling and position recovery
+    - Test mode for pattern validation
+  - **Integrated Monitoring**: Syslog checks added to all monitoring modes:
+    - Service mode: Continuous syslog monitoring in background daemon
+    - Cron mode: Syslog checks every 2 minutes for immediate alerts  
+    - Manual mode: On-demand syslog analysis and pattern testing
+
+### Enhanced
+- **Monitoring Infrastructure**: Extended all monitoring components for syslog support
+  - Enhanced alertgrams-monitor.sh with real-time syslog checking
+  - Updated alertgrams-cron.sh with frequent syslog monitoring
+  - Improved installation system to deploy syslog monitoring components
+  - Added convenient 'alertgrams-syslog' command alias for easy access
+
+### Improved
+- **Alert Response Time**: Reduced response time for critical system events
+  - Syslog monitoring every 2 minutes in cron mode (vs 5-15 minutes for other checks)
+  - Immediate processing of critical patterns (kernel panic, memory issues)
+  - Real-time security event detection (failed logins, unauthorized access)
+- **Configuration**: Added syslog-specific environment variables
+  - SYSLOG_FILE: Custom syslog file location (default: /var/log/syslog)
+  - SYSLOG_CRITICAL_PATTERNS: Configurable critical alert patterns
+  - SYSLOG_ERROR_PATTERNS: Configurable error alert patterns  
+  - SYSLOG_SECURITY_PATTERNS: Configurable security alert patterns
+  - SYSLOG_CHECK_INTERVAL: Monitoring frequency control
+
+### Technical Details
+- **Pattern Matching**: Advanced regex-based pattern detection system
+- **Position Tracking**: Efficient log file position tracking to avoid duplicate alerts
+- **Log Rotation Support**: Automatic detection and handling of log file rotation
+- **Resource Efficiency**: Minimal system impact with optimized file reading
+- **Error Handling**: Robust error recovery and graceful degradation
+
+## [1.1.0] - 2025-10-25
 
 ### Added
 - **System Monitoring Service**: Complete monitoring infrastructure with three deployment modes
@@ -60,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Resource Management**: Efficient system resource usage monitoring
 - **Network Monitoring**: Connectivity validation for critical services
 
-## [1.0.0] - 2024-10-19
+## [1.0.0] - 2024-12-19
 
 ### Added
 - **Core AlertGrams System**: Complete Telegram alert service implementation
@@ -118,5 +162,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional alert channels (email, SMS)
 - Advanced monitoring rules and thresholds
 - Monitoring data persistence and reporting
-
 - Integration with popular monitoring tools
