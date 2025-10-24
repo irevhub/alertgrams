@@ -1,0 +1,130 @@
+# AlertGrams Project .gitignore
+# ============================
+# Description: Git ignore file for AlertGrams Telegram Alert Service
+# Project: POSIX shell-based alert system with zero dependencies
+# Author: AlertGrams Project
+
+# Configuration files (sensitive)
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Log files
+*.log
+logs/
+/var/log/alertgrams/
+alerts.log
+alertgrams*.log
+
+# Runtime files
+*.pid
+*.tmp
+/tmp/alertgrams*
+/tmp/alert*
+
+# Position tracking files (for log monitoring)
+*.pos
+syslog.pos
+alertgrams-*.pos
+
+# Cache and temporary directories
+cache/
+tmp/
+temp/
+
+# Backup files
+*.bak
+*.backup
+*~
+*.orig
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vim/
+.nvim/
+
+# Testing and development
+test-output/
+debug.log
+test.log
+*.test
+
+# Service management files (created at runtime)
+/etc/systemd/system/alertgrams-monitor.service
+/var/lib/alertgrams/
+/run/alertgrams/
+
+# Installation artifacts
+install.log
+uninstall.log
+
+# Package management
+node_modules/
+vendor/
+.bundle/
+
+# Documentation build files
+docs/_build/
+site/
+
+# Local development overrides
+local.sh
+dev.sh
+debug.sh
+
+# Sensitive test data
+test-secrets.env
+test-config.env
+
+# Archive files
+*.tar.gz
+*.zip
+*.tar.bz2
+*.tar.xz
+
+# Lock files
+*.lock
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+# Docker (if used for testing)
+Dockerfile.local
+docker-compose.override.yml
+
+# GitHub specific
+.github/workflows/local.yml
+
+# Coverage reports (if testing tools are added)
+coverage/
+*.coverage
+.nyc_output/
+
+# Monitoring and alerting specific
+cooldown-*
+throttle-*
+alert-cache-*
+
+# System service files (created during installation)
+/usr/local/bin/alertgrams-monitor.sh
+/etc/alertgrams/.env
