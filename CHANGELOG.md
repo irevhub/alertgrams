@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.0] - 2024-12-19
+## [1.1.0] - 2025-10-19
 
 ### Added
 - **System Monitoring Service**: Complete monitoring infrastructure with three deployment modes
@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Resource Management**: Efficient system resource usage monitoring
 - **Network Monitoring**: Connectivity validation for critical services
 
-## [1.0.0] - 2024-12-19
+## [1.0.0] - 2024-10-19
 
 ### Added
 - **Core AlertGrams System**: Complete Telegram alert service implementation
@@ -118,4 +118,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional alert channels (email, SMS)
 - Advanced monitoring rules and thresholds
 - Monitoring data persistence and reporting
+
 - Integration with popular monitoring tools
