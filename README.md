@@ -1,6 +1,6 @@
-# AlertGrams 📨
+# AlertGrams 📨 v1.1.0
 
-**Portable Telegram Alert Service for Linux/UNIX Systems**
+**Portable Telegram Alert Service with System Monitoring for Linux/UNIX Systems**
 
 AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to Telegram without requiring any external dependencies beyond what's already available on most Linux/UNIX systems.
 
@@ -10,6 +10,7 @@ AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to T
 
 ## ✨ Features
 
+### Core Alert System
 - **100% Portable**: Works on any POSIX-compliant system
 - **Zero Dependencies**: Uses only system default tools (`sh`, `curl`/`wget`, `printf`, `date`)
 - **Universal Compatibility**: Tested on Debian, Ubuntu, Alpine, BusyBox, OpenWRT, and Raspberry Pi OS
@@ -17,6 +18,15 @@ AlertGrams is a lightweight, POSIX-compliant shell script that sends alerts to T
 - **Rich Formatting**: Supports different alert levels with appropriate emojis
 - **Logging Support**: Optional file logging for alert history
 - **Easy Installation**: Simple setup script included
+
+### System Monitoring (v1.1.0+)
+- **Service Mode**: Continuous background monitoring via systemd service
+- **Cron Mode**: Periodic monitoring checks via scheduled cron jobs
+- **Manual Mode**: On-demand monitoring tools with interactive menu
+- **Resource Monitoring**: CPU, memory, and disk usage tracking
+- **Service Monitoring**: Configurable service status checking
+- **Network Monitoring**: Internet and Telegram API connectivity validation
+- **Security Monitoring**: Failed login attempts and system changes detection
 
 ## 🚀 Quick Start
 
@@ -100,6 +110,99 @@ df -h / | awk 'NR==2 {if($5+0 > 80) system("./alert.sh WARNING \"Disk usage: " $
 ```bash
 ./alert.sh --help    # Show help information
 ./alert.sh -h        # Show help information
+```
+
+## 📊 System Monitoring (v1.1.0+)
+
+AlertGrams now includes comprehensive system monitoring capabilities with three deployment modes:
+
+### Monitoring Modes
+
+#### 🔄 Service Mode (Recommended)
+Continuous background monitoring via systemd service.
+
+```bash
+# Enable during installation or run:
+sudo systemctl start alertgrams-monitor
+sudo systemctl enable alertgrams-monitor
+
+# Check service status
+sudo systemctl status alertgrams-monitor
+```
+
+**Features:**
+- Real-time system resource monitoring
+- Configurable alert thresholds
+- Service status monitoring
+- Network connectivity checks
+- Security event detection
+- Graceful shutdown and reload
+
+#### ⏰ Cron Mode
+Periodic monitoring checks via scheduled cron jobs.
+
+```bash
+# Cron jobs are automatically created:
+*/5 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh critical
+*/15 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh service
+0 * * * * root cd /usr/local/bin && ./alertgrams-cron.sh health
+0 9 * * * root cd /usr/local/bin && ./alertgrams-cron.sh daily
+```
+
+**Features:**
+- Critical checks every 5 minutes
+- Service checks every 15 minutes
+- Health summaries every hour
+- Daily status reports at 9 AM
+
+#### 🔧 Manual Mode
+On-demand monitoring tools with interactive menu.
+
+```bash
+# Run manual monitoring tools
+alertgrams-manual.sh          # Interactive menu
+alertgrams-manual.sh status   # Quick status check
+alertgrams-manual.sh report   # Full system report
+alertgrams-manual.sh test     # Test alert functionality
+
+# Or use the convenient alias
+alertgrams-check
+```
+
+**Features:**
+- Interactive monitoring menu
+- Quick system status checks
+- Comprehensive system reports
+- Alert testing tools
+- Custom alert sending
+
+### Monitoring Configuration
+
+Add these variables to your `.env` file for enhanced monitoring:
+
+```bash
+# Monitoring Settings (Optional)
+MONITOR_SERVICES="nginx apache2 mysql postgresql ssh"  # Services to monitor
+CPU_THRESHOLD=90                                       # CPU alert threshold (%)
+MEMORY_THRESHOLD=90                                    # Memory alert threshold (%)
+DISK_THRESHOLD=90                                     # Disk alert threshold (%)
+MONITOR_INTERVAL=300                                  # Service monitoring interval (seconds)
+```
+
+### Monitoring Examples
+
+```bash
+# Manual system check
+./alertgrams-manual.sh status
+
+# Test monitoring alerts
+./alertgrams-manual.sh test
+
+# Check specific system health
+./alertgrams-cron.sh health
+
+# Monitor custom services
+MONITOR_SERVICES="docker redis mongodb" ./alertgrams-monitor.sh --test
 ```
 
 ## ⚙️ Configuration

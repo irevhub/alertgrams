@@ -2,7 +2,7 @@
 # AlertGrams Installation Script
 # ==============================
 # Description: Setup script for Telegram Alert Service
-# Version: 1.0.0
+# Version: 1.1.0
 # Author: AlertGrams Project
 #
 # This script helps users set up the AlertGrams service by:
@@ -1047,6 +1047,218 @@ setup_service() {
     return 0
 }
 
+# Setup monitoring (optional)
+setup_monitoring() {
+    if [ "$SILENT_MODE" = false ]; then
+        printf "\n%sWould you like to set up system monitoring? (y/N):%s " "$YELLOW" "$NC" >&2
+        read -r setup_monitoring_choice </dev/tty
+        case "$setup_monitoring_choice" in
+            [Yy]|[Yy][Ee][Ss])
+                select_monitoring_mode
+                ;;
+            *)
+                print_info "Skipping monitoring setup"
+                ;;
+        esac
+    fi
+}
+
+# Select monitoring mode
+select_monitoring_mode() {
+    printf "\n%sSelect monitoring mode:%s\n" "$BLUE" "$NC" >&2
+    printf "1) Service Mode - Continuous background monitoring (systemd service)\n" >&2
+    printf "2) Cron Mode - Periodic checks via cron jobs\n" >&2
+    printf "3) Manual Mode - On-demand monitoring tools only\n" >&2
+    printf "\nChoice (1-3): " >&2
+    read -r mode_choice </dev/tty
+    
+    case "$mode_choice" in
+        1)
+            setup_service_monitoring
+            ;;
+        2)
+            setup_cron_monitoring
+            ;;
+        3)
+            setup_manual_monitoring
+            ;;
+        *)
+            print_warning "Invalid choice. Skipping monitoring setup."
+            ;;
+    esac
+}
+
+# Setup service-based monitoring
+setup_service_monitoring() {
+    print_info "Setting up service-based monitoring..."
+    
+    # Determine installation directory
+    install_dir="${INSTALL_DIR:-/usr/local/bin}"
+    
+    # Copy monitoring daemon
+    if [ -f "alertgrams-monitor.sh" ]; then
+        cp "alertgrams-monitor.sh" "$install_dir/"
+        chmod 755 "$install_dir/alertgrams-monitor.sh"
+        print_success "Monitoring daemon installed"
+    else
+        print_warning "alertgrams-monitor.sh not found"
+        return 1
+    fi
+    
+    # Create systemd service file
+    create_monitoring_systemd_service
+    
+    # Enable and start service
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl daemon-reload
+        if systemctl enable alertgrams-monitor.service; then
+            print_success "Monitoring service enabled"
+        fi
+        
+        print_info "Starting monitoring service..."
+        if systemctl start alertgrams-monitor.service; then
+            print_success "Monitoring service started successfully"
+            printf "\nService status:\n"
+            systemctl status alertgrams-monitor.service --no-pager -l || true
+        else
+            print_warning "Failed to start monitoring service"
+            return 1
+        fi
+    else
+        print_warning "systemctl not available. Service created but not started"
+    fi
+}
+
+# Setup cron-based monitoring
+setup_cron_monitoring() {
+    print_info "Setting up cron-based monitoring..."
+    
+    # Determine installation directory
+    install_dir="${INSTALL_DIR:-/usr/local/bin}"
+    
+    # Copy cron monitoring script
+    if [ -f "alertgrams-cron.sh" ]; then
+        cp "alertgrams-cron.sh" "$install_dir/"
+        chmod 755 "$install_dir/alertgrams-cron.sh"
+        print_success "Cron monitoring script installed"
+    else
+        print_warning "alertgrams-cron.sh not found"
+        return 1
+    fi
+    
+    # Create cron jobs
+    create_cron_jobs
+    
+    print_success "Cron-based monitoring configured successfully"
+    print_info "Cron jobs created for periodic system monitoring"
+}
+
+# Setup manual monitoring tools
+setup_manual_monitoring() {
+    print_info "Setting up manual monitoring tools..."
+    
+    # Determine installation directory
+    install_dir="${INSTALL_DIR:-/usr/local/bin}"
+    
+    # Copy manual monitoring script
+    if [ -f "alertgrams-manual.sh" ]; then
+        cp "alertgrams-manual.sh" "$install_dir/"
+        chmod 755 "$install_dir/alertgrams-manual.sh"
+        print_success "Manual monitoring tools installed"
+        
+        # Create convenient symlink
+        if [ "$install_dir" = "/usr/local/bin" ]; then
+            ln -sf "$install_dir/alertgrams-manual.sh" /usr/local/bin/alertgrams-check
+            print_success "Created 'alertgrams-check' command for easy access"
+        fi
+        
+        printf "\n%sManual monitoring tools ready!%s\n" "$GREEN" "$NC"
+        printf "Run: %s/alertgrams-manual.sh (or 'alertgrams-check')\n" "$install_dir"
+    else
+        print_warning "alertgrams-manual.sh not found"
+        return 1
+    fi
+}
+
+# Create systemd service file for monitoring
+create_monitoring_systemd_service() {
+    service_file="/etc/systemd/system/alertgrams-monitor.service"
+    install_dir="${INSTALL_DIR:-/usr/local/bin}"
+    config_dir="${CONFIG_DIR:-/etc/alertgrams}"
+    
+    print_info "Creating monitoring systemd service file..."
+    cat > "$service_file" << EOF
+[Unit]
+Description=AlertGrams System Monitor
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=$install_dir/alertgrams-monitor.sh
+ExecReload=/bin/kill -HUP \$MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+WorkingDirectory=$install_dir
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=$install_dir
+ReadOnlyPaths=$config_dir
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    
+    print_success "Systemd service file created: $service_file"
+}
+
+# Create cron jobs
+create_cron_jobs() {
+    cron_file="/etc/cron.d/alertgrams"
+    install_dir="${INSTALL_DIR:-/usr/local/bin}"
+    
+    print_info "Creating cron jobs..."
+    cat > "$cron_file" << EOF
+# AlertGrams System Monitoring Cron Jobs
+# Generated by AlertGrams installer v1.1.0
+
+# Critical checks every 5 minutes
+*/5 * * * * root cd $install_dir && ./alertgrams-cron.sh critical >/dev/null 2>&1
+
+# Service checks every 15 minutes  
+*/15 * * * * root cd $install_dir && ./alertgrams-cron.sh service >/dev/null 2>&1
+
+# System health check every hour
+0 * * * * root cd $install_dir && ./alertgrams-cron.sh health >/dev/null 2>&1
+
+# Daily summary at 9 AM
+0 9 * * * root cd $install_dir && ./alertgrams-cron.sh daily >/dev/null 2>&1
+EOF
+    
+    # Set proper permissions
+    chmod 644 "$cron_file"
+    
+    # Reload cron
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl reload cron 2>/dev/null || systemctl reload crond 2>/dev/null || true
+    fi
+    
+    print_success "Cron jobs created: $cron_file"
+    printf "Monitoring schedule:\n"
+    printf "  - Critical checks: Every 5 minutes\n"
+    printf "  - Service checks: Every 15 minutes\n"
+    printf "  - Health checks: Every hour\n"
+    printf "  - Daily summary: 9:00 AM\n"
+}
+
 # Main installation function
 main() {
     setup_colors
@@ -1130,6 +1342,9 @@ main() {
     # Setup service if system installation
     if [ "${INSTALL_SYSTEM:-false}" = "true" ]; then
         setup_service
+        
+        # Setup monitoring
+        setup_monitoring
     fi
     
     printf "\n"

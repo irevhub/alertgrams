@@ -2,7 +2,7 @@
 # Telegram Alert Script (POSIX-Compliant)
 # ----------------------------------------
 # Description: Send alerts to Telegram bot without external dependencies
-# Version: 1.0.0
+# Version: 1.1.0
 # Author: AlertGrams Project
 #
 # Usage:
