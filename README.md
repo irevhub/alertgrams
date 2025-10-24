@@ -1,4 +1,4 @@
-# AlertGrams 📨 v1.1.0
+# AlertGrams 📨
 
 **Portable Telegram Alert Service with System Monitoring for Linux/UNIX Systems**
 
@@ -490,5 +490,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/irev/alertgrams/discussions)
 
 ---
+
 
 **Made with ❤️ for the sysadmin community**
