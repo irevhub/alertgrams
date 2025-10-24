@@ -56,7 +56,7 @@ For a standard installation with interactive setup:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/alertgrams.git
+git clone https://github.com/irev/alertgrams.git
 cd alertgrams
 
 # Make installer executable
@@ -594,3 +594,4 @@ After successful installation:
 
 
 **Installation complete!** 🎉 Your AlertGrams service is ready to use.
+
