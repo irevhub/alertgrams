@@ -1,2 +1,145 @@
 2025-10-24 23:01:18 [info] test system
 2025-10-24 23:02:23 [CRITICAL] Database connection failed
+2025-10-25 02:01:29 [INFO] AlertGrams installation test - Sat Oct 25 02:01:28 +07 2025
+2025-10-25 02:01:37 [INFO] AlertGrams monitoring service started on MEEDUNS
+2025-10-25 02:01:50 [WARNING] High disk usage: /usr/lib/wsl/drivers at 96%
+2025-10-25 02:01:39 [WARNING] High disk usage: /mnt/c at 96%
+2025-10-25 02:01:41 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS networkd-dispatcher[183]: ERROR:Unknown state for interface NetworkctlListState(idx=1, name='lo', type='loopback', operational='n/a', administrative='unmanaged'): n/a
+2025-10-25 02:01:42 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS networkd-dispatcher[183]: ERROR:Unknown state for interface NetworkctlListState(idx=2, name='eth0', type='ether', operational='n/a', administrative='unmanaged'): n/a
+2025-10-25 02:01:44 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.776973900+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.aufs\"..." error="aufs is not supported (modprobe aufs failed: exit status 1 \"modprobe: FATAL: Module aufs not found in directory /lib/modules/5.15.167.4-microsoft-standard-WSL2\\n\"): skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:01:45 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.777598810+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.blockfile\"..." error="no scratch file generator: skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:01:46 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.777808326+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.btrfs\"..." error="path /var/lib/containerd/io.containerd.snapshotter.v1.btrfs (ext4) must be a btrfs filesystem to be used with the btrfs snapshotter: skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:01:47 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.777855277+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.devmapper\"..." error="devmapper not configured: skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:01:49 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.779347395+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.zfs\"..." error="path /var/lib/containerd/io.containerd.snapshotter.v1.zfs must be a zfs filesystem to be used with the zfs snapshotter: skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:01:51 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.789351580+07:00" level=info msg="skip loading plugin \"io.containerd.tracing.processor.v1.otlp\"..." error="skip plugin: tracing endpoint not configured" type=io.containerd.tracing.processor.v1
+2025-10-25 02:01:52 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:01 - Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.789369051+07:00" level=info msg="skip loading plugin \"io.containerd.internal.v1.tracing\"..." error="skip plugin: tracing endpoint not configured" type=io.containerd.internal.v1
+2025-10-25 02:02:05 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:03 - Oct 21 22:32:03 MEEDUNS dockerd[352]: time="2025-10-21T22:32:03.278438570+07:00" level=warning msg="error locating sandbox id 4bcb9974a1e134f596b8558340dd7131ae0ec97e25c57b2b88a37759d8ba3c0c: sandbox 4bcb9974a1e134f596b8558340dd7131ae0ec97e25c57b2b88a37759d8ba3c0c not found"
+2025-10-25 02:01:55 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:03 - Oct 21 22:32:03 MEEDUNS dockerd[352]: time="2025-10-21T22:32:03.278495121+07:00" level=warning msg="error locating sandbox id 0b304089cdce960d7bf9527c402a1e452f9b8c240c35c27d44bbae55575af4a7: sandbox 0b304089cdce960d7bf9527c402a1e452f9b8c240c35c27d44bbae55575af4a7 not found"
+2025-10-25 02:01:56 [ERROR] ❌ SYSLOG ERROR: Oct 21 22:32:03 - Oct 21 22:32:03 MEEDUNS dockerd[352]: time="2025-10-21T22:32:03.278510642+07:00" level=warning msg="error locating sandbox id f7b9de587d4053ccccc9fc706ad0aa4bd108715986f67cf762e539636f70f754: sandbox f7b9de587d4053ccccc9fc706ad0aa4bd108715986f67cf762e539636f70f754 not found"
+2025-10-25 02:02:01 [INFO] AlertGrams monitoring service stopped on MEEDUNS
+2025-10-25 02:08:30 [INFO] AlertGrams monitoring service started on MEEDUNS
+2025-10-25 02:08:31 [WARNING] High disk usage: /usr/lib/wsl/drivers at 96%
+2025-10-25 02:08:32 [WARNING] High disk usage: /mnt/c at 96%
+2025-10-25 02:08:37 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: systemd
+Issue: rsyslog.service: Sent signal SIGHUP to main process 184 (rsyslogd) on client request.
+2025-10-25 02:08:59 [CRITICAL] �️ SECURITY ALERT
+Host: MEEDUNS
+Time: 
+Process: dbus-daemon
+Event: [system] Activation via systemd failed for unit 'dbus-org.freedesktop.network1.service': Unit dbus-o
+2025-10-25 02:09:00 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: networkd-dispatcher
+Issue: WARNING: systemd-networkd is not running, output will be incomplete.
+2025-10-25 02:09:01 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: networkd-dispatcher
+Issue: ERROR:Unknown state for interface NetworkctlListState(idx=1, name='lo', type='loopback', operational
+2025-10-25 02:09:04 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: snapd
+Issue: daemon.go:276: started snapd/2.71+ubuntu22.04 (series 16; classic; devmode; wsl) ubuntu/22.04 (amd64
+2025-10-25 02:09:06 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: containerd
+Issue: time="2025-10-21T22:32:01.777808326+07:00" level=info msg="skip loading plugin \"io.containerd.snaps
+2025-10-25 02:08:57 [CRITICAL] �️ SECURITY ALERT
+Host: MEEDUNS
+Time: 
+Process: web-scanner-detector
+Event: 2025-10-21 22:32:01,781 - __main__ - INFO - Starting log monitoring: /var/log/apache2/access.log
+2025-10-25 02:09:03 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: systemd-udevd
+Issue: Using default interface naming scheme 'v249'.
+2025-10-25 02:09:05 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [    4.716410] nf_conntrack: default automatic helper assignment has been turned off for security re
+2025-10-25 02:09:10 [CRITICAL] �️ SECURITY ALERT
+Host: MEEDUNS
+Time: 
+Process: systemd-resolved
+Event: Clock change detected. Flushing caches.
+2025-10-25 02:09:12 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [   49.273658] hv_balloon: Max. dynamic memory size: 15256 MB
+2025-10-25 02:09:25 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [    0.000000] Command line: initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=16 hv_utils.timesyn
+2025-10-25 02:09:29 [CRITICAL] �️ SECURITY ALERT
+Host: MEEDUNS
+Time: 
+Process: kernel
+Event: [    0.000000] DMI not present or invalid.
+2025-10-25 02:09:30 [CRITICAL] �️ SECURITY ALERT
+Host: MEEDUNS
+Time: 
+Process: kernel
+Event: [    0.000000] Hyper-V: privilege flags low 0xae7f, high 0x3b8030, hints 0x900c2c, misc 0xe0bed7b6
+2025-10-25 02:09:32 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [    0.000219] RAMDISK: [mem 0x03de4000-0x0400bfff]
+2025-10-25 02:09:39 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [    0.037083] Kernel command line: initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=16 hv_utils.
+2025-10-25 02:09:54 [CRITICAL] � SYSTEM CRITICAL
+Host: MEEDUNS
+Time: 
+Process: kernel
+Issue: [    0.215449] kvm: no hardware support
+2025-10-25 02:10:53 [INFO] AlertGrams monitoring service stopped on MEEDUNS
+2025-10-25 02:10:59 [INFO] AlertGrams monitoring service started on MEEDUNS
+2025-10-25 02:11:00 [WARNING] High disk usage: /usr/lib/wsl/drivers at 96%
+2025-10-25 02:11:01 [WARNING] High disk usage: /mnt/c at 96%
+2025-10-25 02:11:33 [INFO] AlertGrams monitoring service stopped on MEEDUNS
+2025-10-25 02:14:47 [ERROR] 🔍 SYSLOG ALERT
+Pattern: failed
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS dbus-daemon[178]: [system] Activation via systemd failed for unit 'dbus-org.freedesktop.network1.service': Unit dbus-org.freedesktop.network1.service not found.
+2025-10-25 02:14:49 [WARNING] 🔍 SYSLOG ALERT
+Pattern: warning
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS networkd-dispatcher[311]: WARNING: systemd-networkd is not running, output will be incomplete.
+2025-10-25 02:15:01 [ERROR] 🔍 SYSLOG ALERT
+Pattern: error
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS networkd-dispatcher[183]: ERROR:Unknown state for interface NetworkctlListState(idx=1, name='lo', type='loopback', operational='n/a', administrative='unmanaged'): n/a
+2025-10-25 02:14:51 [ERROR] 🔍 SYSLOG ALERT
+Pattern: error
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS networkd-dispatcher[183]: ERROR:Unknown state for interface NetworkctlListState(idx=2, name='eth0', type='ether', operational='n/a', administrative='unmanaged'): n/a
+2025-10-25 02:14:53 [ERROR] 🔍 SYSLOG ALERT
+Pattern: timeout
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS snapd[186]: daemon.go:370: adjusting startup timeout by 30s (pessimistic estimate of 30s plus 5s per snap)
+2025-10-25 02:15:06 [WARNING] 🔍 SYSLOG ALERT
+Pattern: warning
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01+07:00" level=warning msg="containerd config version `1` has been deprecated and will be converted on each startup in containerd v2.0, use `containerd config migrate` after upgrading to containerd 2.0 to avoid conversion on startup"
+2025-10-25 02:14:56 [ERROR] 🔍 SYSLOG ALERT
+Pattern: error
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.776973900+07:00" level=info msg="skip loading plugin \"io.containerd.snapshotter.v1.aufs\"..." error="aufs is not supported (modprobe aufs failed: exit status 1 \"modprobe: FATAL: Module aufs not found in directory /lib/modules/5.15.167.4-microsoft-standard-WSL2\\n\"): skip plugin" type=io.containerd.snapshotter.v1
+2025-10-25 02:14:57 [WARNING] 🔍 SYSLOG ALERT
+Pattern: warning
+Time: Oct 21 22:32:01
+Log: Oct 21 22:32:01 MEEDUNS containerd[220]: time="2025-10-21T22:32:01.777332429+07:00" level=info msg="loading plugin \"io.containerd.warning.v1.deprecations\"..." type=io.containerd.warning.v1
+2025-10-25 02:30:17 [INFO] Test alert after config fix

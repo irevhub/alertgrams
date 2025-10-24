@@ -1,0 +1,34 @@
+[Unit]
+Description=AlertGrams Monitoring Service
+Documentation=https://github.com/irev/alertgrams
+After=network-online.target
+Wants=network-online.target
+Restart=on-failure
+RestartSec=30
+
+[Service]
+Type=simple
+User=alertgrams
+Group=alertgrams
+ExecStart=/usr/local/bin/alertgrams-monitor.sh
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=alertgrams-monitor
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp /var/log /etc/alertgrams
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

@@ -14,19 +14,35 @@
 
 set -eu
 
-# Configuration defaults
-MONITOR_INTERVAL="${MONITOR_INTERVAL:-300}"      # 5 minutes
-CPU_THRESHOLD="${CPU_THRESHOLD:-85}"             # 85% CPU usage
-MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-90}"       # 90% memory usage
-DISK_THRESHOLD="${DISK_THRESHOLD:-85}"           # 85% disk usage
+# Configuration defaults - Enhanced for better filtering
+MONITOR_INTERVAL="${MONITOR_INTERVAL:-300}"      # 5 minutes - tidak perlu terlalu sering
+CPU_THRESHOLD="${CPU_THRESHOLD:-90}"             # 90% - lebih konservatif
+MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-95}"       # 95% - hanya alert jika benar-benar kritis
+DISK_THRESHOLD="${DISK_THRESHOLD:-90}"           # 90% - beri waktu untuk cleanup
 MONITOR_SERVICES="${MONITOR_SERVICES:-nginx apache2 mysql postgresql redis-server}"
 LOG_FILES="${LOG_FILES:-/var/log/syslog /var/log/auth.log}"
+LOAD_THRESHOLD_MULTIPLIER="${LOAD_THRESHOLD_MULTIPLIER:-2.0}"  # 2x CPU cores
+NETWORK_TEST_HOSTS="${NETWORK_TEST_HOSTS:-8.8.8.8 1.1.1.1 google.com}"
 
-# Syslog monitoring configuration
+# Syslog monitoring configuration - Enhanced filtering
 SYSLOG_FILE="${SYSLOG_FILE:-/var/log/syslog}"
-SYSLOG_CRITICAL_PATTERNS="${SYSLOG_CRITICAL_PATTERNS:-kernel panic|out of memory|segmentation fault|critical error|system crash|hardware error}"
-SYSLOG_ERROR_PATTERNS="${SYSLOG_ERROR_PATTERNS:-error|failed|failure|denied|rejected|timeout|unreachable}"
-SYSLOG_SECURITY_PATTERNS="${SYSLOG_SECURITY_PATTERNS:-authentication failure|invalid user|failed password|brute force|intrusion|unauthorized}"
+
+# Critical patterns - hanya untuk masalah serius
+SYSLOG_CRITICAL_PATTERNS="${SYSLOG_CRITICAL_PATTERNS:-kernel panic|oops|segmentation fault|out of memory|oom-killer|system crash|hardware error|critical temperature|disk error|filesystem error|raid.*fail|power.*fail}"
+
+# Security patterns - fokus pada ancaman keamanan nyata
+SYSLOG_SECURITY_PATTERNS="${SYSLOG_SECURITY_PATTERNS:-authentication failure.*root|invalid user.*ssh|failed password.*ssh.*attempts|brute.*force|intrusion detected|unauthorized access|privilege escalation|malware|rootkit}"
+
+# Error patterns - error yang memerlukan tindakan
+SYSLOG_ERROR_PATTERNS="${SYSLOG_ERROR_PATTERNS:-service.*failed|daemon.*died|connection.*refused.*critical|network.*unreachable.*prod|certificate.*expired|ssl.*handshake.*failed.*repeated|database.*connection.*lost}"
+
+# Exclude patterns - hindari noise dari log normal
+SYSLOG_EXCLUDE_PATTERNS="${SYSLOG_EXCLUDE_PATTERNS:-dhcp.*lease|systemd.*started|systemd.*stopped|cron.*session|sudo.*session|user.*logged|anacron.*job|logrotate.*completed}"
+
+# Alert throttling
+ALERT_COOLDOWN_FILE="/tmp/alertgrams-cooldown"
+ALERT_COOLDOWN_SECONDS="${ALERT_COOLDOWN_SECONDS:-300}"  # 5 menit cooldown per pattern
+
 SYSLOG_POSITION_FILE="${SYSLOG_POSITION_FILE:-/tmp/alertgrams-syslog.pos}"
 
 # Load configuration
@@ -52,6 +68,36 @@ load_config() {
         printf "[ERROR] Configuration file not found\n" >&2
         exit 1
     fi
+}
+
+# Function to check if alert should be throttled
+should_throttle_alert() {
+    pattern_hash="$1"
+    current_time=$(date +%s)
+    
+    if [ -f "$ALERT_COOLDOWN_FILE" ]; then
+        while IFS=: read -r hash timestamp; do
+            if [ "$hash" = "$pattern_hash" ]; then
+                time_diff=$((current_time - timestamp))
+                if [ "$time_diff" -lt "$ALERT_COOLDOWN_SECONDS" ]; then
+                    return 0  # Should throttle
+                fi
+            fi
+        done < "$ALERT_COOLDOWN_FILE"
+    fi
+    
+    # Update cooldown file
+    {
+        if [ -f "$ALERT_COOLDOWN_FILE" ]; then
+            # Remove old entries and current pattern
+            awk -F: -v hash="$pattern_hash" -v cutoff="$((current_time - ALERT_COOLDOWN_SECONDS))" '
+                $1 != hash && $2 > cutoff { print }
+            ' "$ALERT_COOLDOWN_FILE"
+        fi
+        echo "$pattern_hash:$current_time"
+    } > "${ALERT_COOLDOWN_FILE}.tmp" && mv "${ALERT_COOLDOWN_FILE}.tmp" "$ALERT_COOLDOWN_FILE"
+    
+    return 1  # Don't throttle
 }
 
 # Send alert wrapper
@@ -99,39 +145,67 @@ check_system_resources() {
     done
 }
 
-# Service status monitoring
+# Smart service monitoring - skip jika service memang tidak seharusnya jalan
 check_services() {
     if [ -z "$MONITOR_SERVICES" ]; then
         return 0
     fi
     
     for service in $MONITOR_SERVICES; do
+        service_exists=0
+        
         if command -v systemctl >/dev/null 2>&1; then
-            if systemctl list-units --type=service | grep -q "^[[:space:]]*$service.service"; then
+            if systemctl list-unit-files | grep -q "^${service}.service"; then
+                service_exists=1
                 if ! systemctl is-active --quiet "$service" 2>/dev/null; then
-                    send_alert "CRITICAL" "Service '$service' is not running"
+                    # Check if service is supposed to be enabled
+                    if systemctl is-enabled --quiet "$service" 2>/dev/null; then
+                        send_alert "CRITICAL" "🔧 Service Down: '$service' is enabled but not running"
+                    fi
                 fi
             fi
         elif command -v service >/dev/null 2>&1; then
-            if ! service "$service" status >/dev/null 2>&1; then
-                send_alert "CRITICAL" "Service '$service' is not running"
+            if service "$service" status >/dev/null 2>&1 || [ $? -ne 4 ]; then
+                service_exists=1
+                if ! service "$service" status >/dev/null 2>&1; then
+                    send_alert "CRITICAL" "🔧 Service Down: '$service' is not running"
+                fi
             fi
+        fi
+        
+        # Jika service tidak ditemukan, beri peringatan sekali saja
+        if [ "$service_exists" -eq 0 ]; then
+            pattern_hash="service_not_found_${service}"
+            if should_throttle_alert "$pattern_hash"; then
+                continue
+            fi
+            printf "[WARNING] Service '%s' not found on this system\n" "$service"
         fi
     done
 }
 
-# Network connectivity check
+# Network check dengan multiple fallback
 check_network() {
-    test_hosts="8.8.8.8 1.1.1.1"
+    test_hosts="${NETWORK_TEST_HOSTS:-8.8.8.8 1.1.1.1 google.com}"
+    failed_hosts=0
+    total_hosts=0
     
     for host in $test_hosts; do
+        total_hosts=$((total_hosts + 1))
+        
         if command -v ping >/dev/null 2>&1; then
             if ! ping -c 1 -W 5 "$host" >/dev/null 2>&1; then
-                send_alert "WARNING" "Network connectivity issue: Cannot reach $host"
-                break
+                failed_hosts=$((failed_hosts + 1))
             fi
         fi
     done
+    
+    # Alert hanya jika semua host gagal atau mayoritas gagal
+    if [ "$failed_hosts" -eq "$total_hosts" ]; then
+        send_alert "CRITICAL" "🌐 Network connectivity lost: All test hosts unreachable"
+    elif [ "$failed_hosts" -gt $((total_hosts / 2)) ]; then
+        send_alert "WARNING" "🌐 Network issues: $failed_hosts/$total_hosts hosts unreachable"
+    fi
 }
 
 # Load average check
@@ -179,7 +253,7 @@ check_security_events() {
     fi
 }
 
-# Check syslog for critical entries
+# Enhanced syslog checking with smart filtering
 check_syslog() {
     if [ ! -f "$SYSLOG_FILE" ]; then
         printf "[WARNING] Syslog file not found: %s\n" "$SYSLOG_FILE"
@@ -194,40 +268,110 @@ check_syslog() {
         last_position=$(cat "$SYSLOG_POSITION_FILE" 2>/dev/null || echo "0")
     fi
     
-    # If file is smaller, it might have been rotated
+    # Handle log rotation
     if [ "$current_position" -lt "$last_position" ]; then
         last_position="0"
+        printf "[INFO] Log rotation detected, resetting position\n"
     fi
     
     # Check if there are new entries
     if [ "$current_position" -gt "$last_position" ]; then
         bytes_to_read=$((current_position - last_position))
         
-        # Read new content and check for patterns
-        tail -c +"$((last_position + 1))" "$SYSLOG_FILE" | head -c "$bytes_to_read" | while IFS= read -r line; do
+        # Process new log entries
+        tail -c +"$((last_position + 1))" "$SYSLOG_FILE" | head -c "$bytes_to_read" | \
+        while IFS= read -r line; do
             [ -z "$line" ] && continue
             
-            # Convert to lowercase for case-insensitive matching
-            line_lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
-            timestamp=$(echo "$line" | awk '{print $1, $2, $3}' | head -c 20)
+            # Skip if line matches exclude patterns
+            line_lower=$(printf "%s" "$line" | tr '[:upper:]' '[:lower:]')
+            excluded=0
             
-            # Check critical patterns
-            if echo "$line_lower" | grep -qE "$(echo "$SYSLOG_CRITICAL_PATTERNS" | tr '|' '\n' | head -1)"; then
-                send_alert "CRITICAL" "🔍 SYSLOG CRITICAL: $timestamp - $line"
-                printf "[CRITICAL] Syslog alert: %s\n" "$line"
-            # Check security patterns  
-            elif echo "$line_lower" | grep -qE "$(echo "$SYSLOG_SECURITY_PATTERNS" | tr '|' '\n' | head -1)"; then
-                send_alert "CRITICAL" "🔒 SYSLOG SECURITY: $timestamp - $line"
-                printf "[SECURITY] Syslog alert: %s\n" "$line"
-            # Check error patterns
-            elif echo "$line_lower" | grep -qE "$(echo "$SYSLOG_ERROR_PATTERNS" | tr '|' '\n' | head -1)"; then
-                send_alert "ERROR" "❌ SYSLOG ERROR: $timestamp - $line"
-                printf "[ERROR] Syslog alert: %s\n" "$line"
-            fi
+            # Check exclude patterns
+            for pattern in $(printf "%s" "$SYSLOG_EXCLUDE_PATTERNS" | tr '|' ' '); do
+                if printf "%s" "$line_lower" | grep -q "$pattern"; then
+                    excluded=1
+                    break
+                fi
+            done
+            
+            [ "$excluded" -eq 1 ] && continue
+            
+            # Extract timestamp and create shorter line for alerts
+            timestamp=$(printf "%s" "$line" | awk '{print $1, $2, $3}')
+            process=$(printf "%s" "$line" | awk '{print $5}' | cut -d'[' -f1 | cut -d':' -f1)
+            message_part=$(printf "%s" "$line" | cut -d' ' -f6- | head -c 100)
+            
+            # Check critical patterns (highest priority)
+            for pattern in $(printf "%s" "$SYSLOG_CRITICAL_PATTERNS" | tr '|' ' '); do
+                if printf "%s" "$line_lower" | grep -q "$pattern"; then
+                    pattern_hash=$(printf "%s" "$pattern" | md5sum | cut -d' ' -f1 2>/dev/null || echo "$pattern")
+                    
+                    if should_throttle_alert "$pattern_hash"; then
+                        printf "[DEBUG] Throttled critical alert for pattern: %s\n" "$pattern"
+                        continue
+                    fi
+                    
+                    alert_msg="� SYSTEM CRITICAL
+Host: $(hostname)
+Time: $timestamp
+Process: $process
+Issue: $message_part"
+                    
+                    send_alert "CRITICAL" "$alert_msg"
+                    printf "[CRITICAL] Syslog alert: %s\n" "$line"
+                    break
+                fi
+            done
+            
+            # Check security patterns
+            for pattern in $(printf "%s" "$SYSLOG_SECURITY_PATTERNS" | tr '|' ' '); do
+                if printf "%s" "$line_lower" | grep -q "$pattern"; then
+                    pattern_hash=$(printf "%s" "$pattern" | md5sum | cut -d' ' -f1 2>/dev/null || echo "$pattern")
+                    
+                    if should_throttle_alert "$pattern_hash"; then
+                        printf "[DEBUG] Throttled security alert for pattern: %s\n" "$pattern"
+                        continue
+                    fi
+                    
+                    alert_msg="�️ SECURITY ALERT
+Host: $(hostname)
+Time: $timestamp
+Process: $process
+Event: $message_part"
+                    
+                    send_alert "CRITICAL" "$alert_msg"
+                    printf "[SECURITY] Syslog alert: %s\n" "$line"
+                    break
+                fi
+            done
+            
+            # Check error patterns (lower priority, longer cooldown)
+            for pattern in $(printf "%s" "$SYSLOG_ERROR_PATTERNS" | tr '|' ' '); do
+                if printf "%s" "$line_lower" | grep -q "$pattern"; then
+                    pattern_hash=$(printf "%s" "$pattern" | md5sum | cut -d' ' -f1 2>/dev/null || echo "$pattern")
+                    
+                    # Longer cooldown for errors (10 minutes)
+                    if should_throttle_alert "${pattern_hash}_error"; then
+                        printf "[DEBUG] Throttled error alert for pattern: %s\n" "$pattern"
+                        continue
+                    fi
+                    
+                    alert_msg="⚠️ SYSTEM ERROR
+Host: $(hostname)
+Time: $timestamp
+Service: $process
+Error: $message_part"
+                    
+                    send_alert "WARNING" "$alert_msg"
+                    printf "[ERROR] Syslog alert: %s\n" "$line"
+                    break
+                fi
+            done
         done
         
         # Save current position
-        echo "$current_position" > "$SYSLOG_POSITION_FILE"
+        printf "%s" "$current_position" > "$SYSLOG_POSITION_FILE"
     fi
 }
 

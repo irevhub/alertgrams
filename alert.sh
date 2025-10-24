@@ -22,13 +22,37 @@ set -eu
 
 # Load configuration from .env file
 load_config() {
-    if [ -f ".env" ]; then
+    config_found=0
+    
+    # Try system-wide config first (for service mode)
+    if [ -f "/etc/alertgrams/.env" ]; then
+        set -a
+        # shellcheck disable=SC1091
+        . /etc/alertgrams/.env
+        set +a
+        config_found=1
+    # Then try local config (for manual mode)
+    elif [ -f ".env" ]; then
         set -a
         # shellcheck disable=SC1091
         . ./.env
         set +a
-    else
+        config_found=1
+    # Try config in script directory
+    elif [ -f "$(dirname "$0")/.env" ]; then
+        set -a
+        # shellcheck disable=SC1091
+        . "$(dirname "$0")/.env"
+        set +a
+        config_found=1
+    fi
+    
+    if [ "$config_found" -eq 0 ]; then
         printf "Error: Missing .env file. Please create one with TELEGRAM_API_KEY and TELEGRAM_CHAT_ID\n" >&2
+        printf "Searched locations:\n" >&2
+        printf "  - /etc/alertgrams/.env (system-wide)\n" >&2
+        printf "  - ./.env (current directory)\n" >&2
+        printf "  - %s/.env (script directory)\n" >&2 "$(dirname "$0")"
         printf "Use .env.example as a template\n" >&2
         exit 1
     fi
