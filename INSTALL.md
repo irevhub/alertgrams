@@ -79,11 +79,11 @@ The installer will:
 
 ```bash
 # Option 1: Clone from Git
-git clone https://github.com/yourusername/alertgrams.git
+git clone https://github.com/irev/alertgrams.git
 cd alertgrams
 
 # Option 2: Download and extract
-wget https://github.com/yourusername/alertgrams/archive/main.zip
+wget https://github.com/irev/alertgrams/archive/main.zip
 unzip main.zip
 cd alertgrams-main
 
@@ -591,5 +591,6 @@ After successful installation:
 4. **Test Thoroughly**: Send various alert types to verify functionality
 
 ---
+
 
 **Installation complete!** 🎉 Your AlertGrams service is ready to use.
