@@ -2,7 +2,7 @@
 # AlertGrams Monitoring Daemon Service
 # ====================================
 # Description: Continuous server monitoring service for AlertGrams
-# Version: 1.1.0
+# Version: 1.1.1
 # Author: AlertGrams Project
 #
 # This daemon provides continuous monitoring of:
@@ -21,6 +21,13 @@ MEMORY_THRESHOLD="${MEMORY_THRESHOLD:-90}"       # 90% memory usage
 DISK_THRESHOLD="${DISK_THRESHOLD:-85}"           # 85% disk usage
 MONITOR_SERVICES="${MONITOR_SERVICES:-nginx apache2 mysql postgresql redis-server}"
 LOG_FILES="${LOG_FILES:-/var/log/syslog /var/log/auth.log}"
+
+# Syslog monitoring configuration
+SYSLOG_FILE="${SYSLOG_FILE:-/var/log/syslog}"
+SYSLOG_CRITICAL_PATTERNS="${SYSLOG_CRITICAL_PATTERNS:-kernel panic|out of memory|segmentation fault|critical error|system crash|hardware error}"
+SYSLOG_ERROR_PATTERNS="${SYSLOG_ERROR_PATTERNS:-error|failed|failure|denied|rejected|timeout|unreachable}"
+SYSLOG_SECURITY_PATTERNS="${SYSLOG_SECURITY_PATTERNS:-authentication failure|invalid user|failed password|brute force|intrusion|unauthorized}"
+SYSLOG_POSITION_FILE="${SYSLOG_POSITION_FILE:-/tmp/alertgrams-syslog.pos}"
 
 # Load configuration
 load_config() {
@@ -172,6 +179,58 @@ check_security_events() {
     fi
 }
 
+# Check syslog for critical entries
+check_syslog() {
+    if [ ! -f "$SYSLOG_FILE" ]; then
+        printf "[WARNING] Syslog file not found: %s\n" "$SYSLOG_FILE"
+        return 0
+    fi
+    
+    # Get current and last positions
+    current_position=$(wc -c < "$SYSLOG_FILE" 2>/dev/null || echo "0")
+    last_position="0"
+    
+    if [ -f "$SYSLOG_POSITION_FILE" ]; then
+        last_position=$(cat "$SYSLOG_POSITION_FILE" 2>/dev/null || echo "0")
+    fi
+    
+    # If file is smaller, it might have been rotated
+    if [ "$current_position" -lt "$last_position" ]; then
+        last_position="0"
+    fi
+    
+    # Check if there are new entries
+    if [ "$current_position" -gt "$last_position" ]; then
+        bytes_to_read=$((current_position - last_position))
+        
+        # Read new content and check for patterns
+        tail -c +"$((last_position + 1))" "$SYSLOG_FILE" | head -c "$bytes_to_read" | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            
+            # Convert to lowercase for case-insensitive matching
+            line_lower=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+            timestamp=$(echo "$line" | awk '{print $1, $2, $3}' | head -c 20)
+            
+            # Check critical patterns
+            if echo "$line_lower" | grep -qE "$(echo "$SYSLOG_CRITICAL_PATTERNS" | tr '|' '\n' | head -1)"; then
+                send_alert "CRITICAL" "🔍 SYSLOG CRITICAL: $timestamp - $line"
+                printf "[CRITICAL] Syslog alert: %s\n" "$line"
+            # Check security patterns  
+            elif echo "$line_lower" | grep -qE "$(echo "$SYSLOG_SECURITY_PATTERNS" | tr '|' '\n' | head -1)"; then
+                send_alert "CRITICAL" "🔒 SYSLOG SECURITY: $timestamp - $line"
+                printf "[SECURITY] Syslog alert: %s\n" "$line"
+            # Check error patterns
+            elif echo "$line_lower" | grep -qE "$(echo "$SYSLOG_ERROR_PATTERNS" | tr '|' '\n' | head -1)"; then
+                send_alert "ERROR" "❌ SYSLOG ERROR: $timestamp - $line"
+                printf "[ERROR] Syslog alert: %s\n" "$line"
+            fi
+        done
+        
+        # Save current position
+        echo "$current_position" > "$SYSLOG_POSITION_FILE"
+    fi
+}
+
 # Main monitoring function
 run_monitoring_cycle() {
     printf "[INFO] Running monitoring cycle at $(date)\n"
@@ -182,6 +241,7 @@ run_monitoring_cycle() {
     check_load_average
     check_critical_processes
     check_security_events
+    check_syslog
     
     printf "[INFO] Monitoring cycle completed\n"
 }
